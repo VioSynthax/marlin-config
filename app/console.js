@@ -82,23 +82,40 @@ module.exports.init=(http,p,speed)=>{
     }else
       return open(http,p,speed)
 }
-exports.list=()=>new Promise((done,fail)=>{
-  SerialPort.list(function (err, ps){
-    if (err) return fail(err);
-    done(ps.filter(i=>i.manufacturer||/cu\.serial/.test(i.comName)).map(i=>{
-      var m;
-      i.status='closed';
-      if (m=i.comName.match(/(\w+)$/)){
-        //console.log(ports[m[1]],m[1])
-        if(ports[m[1]]){
-          i.status='opened';
-          i.speed=ports[m[1]].speed;
-        }
+
+exports.list=()=>SerialPort.list().then(function(ps) {
+  return ps.filter(i=>i.manufacturer||/cu\.serial/.test(i.comName)).map(i=>{
+    var m;
+    i.status='closed';
+    if (m=i.comName.match(/(\w+)$/)){
+      //console.log(ports[m[1]],m[1])
+      if(ports[m[1]]){
+        i.status='opened';
+        i.speed=ports[m[1]].speed;
       }
-      return i;
-    })||[]);
-  });
+    }
+    return i;
+  }) || [];
 });
+
+//exports.list=()=>new Promise((done,fail)=>{
+  //SerialPort.list(function (err, ps){
+    //if (err) return fail(err);
+    //done(ps.filter(i=>i.manufacturer||/cu\.serial/.test(i.comName)).map(i=>{
+      //var m;
+      //i.status='closed';
+      //if (m=i.comName.match(/(\w+)$/)){
+        ////console.log(ports[m[1]],m[1])
+        //if(ports[m[1]]){
+          //i.status='opened';
+          //i.speed=ports[m[1]].speed;
+        //}
+      //}
+      //return i;
+    //})||[]);
+  //});
+//});
+
 exports.changes=()=>new Promise((done,fail)=>{
   var root='/dev'
   if(process.platform=='win32')
